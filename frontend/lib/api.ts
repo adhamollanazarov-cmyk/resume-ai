@@ -57,7 +57,9 @@ export async function analyzeResume(formData: FormData): Promise<AnalyzeResponse
   let response: Response;
 
   try {
-    response = await fetch(getApiUrl("/api/cv/analyze"), {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+    response = await fetch(`${API_URL}/api/cv/analyze`, {
       method: "POST",
       body: formData,
     });
