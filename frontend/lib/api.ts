@@ -32,7 +32,16 @@ export type AnalyzeResponse = {
   status: string;
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+function getApiUrl(path: string): string {
+  if (!API_URL) {
+    throw new Error("NEXT_PUBLIC_API_URL is not defined");
+  }
+
+  const normalizedBaseUrl = API_URL.replace(/\/+$/, "");
+  return `${normalizedBaseUrl}${path}`;
+}
 
 async function parseResponse<T>(response: Response, fallbackMessage: string): Promise<T> {
   if (!response.ok) {
@@ -48,7 +57,7 @@ export async function analyzeResume(formData: FormData): Promise<AnalyzeResponse
   let response: Response;
 
   try {
-    response = await fetch(`${API_URL}/api/cv/analyze`, {
+    response = await fetch(getApiUrl("/api/cv/analyze"), {
       method: "POST",
       body: formData,
     });
@@ -67,7 +76,7 @@ export async function getAnalyses(): Promise<AnalysisListItem[]> {
   });
 
   try {
-    response = await fetch(`${API_URL}/api/analyses?${searchParams.toString()}`, {
+    response = await fetch(`${getApiUrl("/api/analyses")}?${searchParams.toString()}`, {
       method: "GET",
       cache: "no-store",
     });
@@ -82,7 +91,7 @@ export async function getAnalysis(id: number): Promise<AnalysisDetail> {
   let response: Response;
 
   try {
-    response = await fetch(`${API_URL}/api/analyses/${id}`, {
+    response = await fetch(getApiUrl(`/api/analyses/${id}`), {
       method: "GET",
       cache: "no-store",
     });
