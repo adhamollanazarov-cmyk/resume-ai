@@ -1,0 +1,23 @@
+# env
+.env
+.env.local
+frontend/.env.local
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# node
+node_modules/
+.next/
+
+# misc
+*.log
+dist/
+build/
+.DS_Store
+
+# db
+*.sqlite3

@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #111827;
+  background: #fafafa;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #fafafa;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: #fafafa;
+  color: #111827;
+  font-family:
+    "Aptos",
+    "SF Pro Text",
+    "Segoe UI",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(99, 102, 241, 0.14);
+}
