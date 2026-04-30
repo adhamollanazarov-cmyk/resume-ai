@@ -772,6 +772,7 @@ export default function Home() {
 
     try {
       const analysisResult = await analyzeResume(formData);
+      setRequestError(null);
       setResult(analysisResult);
     } catch (caughtError) {
       const message = caughtError instanceof Error ? caughtError.message : "Resume analysis failed.";
@@ -938,18 +939,18 @@ export default function Home() {
                     </div>
                   ) : null}
 
-                  {requestError ? (
+                  {requestError && !analysis && !isLoading ? (
                     <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-4 text-sm">
                       <p className="font-medium text-red-600">{requestError.title}</p>
                       <p className="mt-1 leading-6 text-red-600">{requestError.description}</p>
                     </div>
                   ) : null}
 
-                  {result && !analysis ? (
+                  {result && !analysis && !requestError && !isLoading ? (
                     <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-4 text-sm">
                       <p className="font-medium text-red-600">AI analysis unavailable</p>
                       <p className="mt-1 leading-6 text-red-600">
-                        Check OpenAI billing or enable USE_MOCK_AI=true.
+                        AI analysis unavailable. Check AI settings or enable mock mode.
                       </p>
                     </div>
                   ) : null}
