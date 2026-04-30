@@ -39,10 +39,8 @@ function getApiUrl(path: string): string {
     throw new Error("NEXT_PUBLIC_API_URL is not defined");
   }
 
-  const normalizedBaseUrl = API_URL.replace(/\/+$/, "");
-  return `${normalizedBaseUrl}${path}`;
+  return new URL(path, API_URL).toString();
 }
-
 async function parseResponse<T>(response: Response, fallbackMessage: string): Promise<T> {
   if (!response.ok) {
     const errorBody = await response.json().catch(() => null);
@@ -59,10 +57,10 @@ export async function analyzeResume(formData: FormData): Promise<AnalyzeResponse
   try {
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-    response = await fetch(`${API_URL}/api/cv/analyze`, {
-      method: "POST",
-      body: formData,
-    });
+    response = await fetch(getApiUrl("/api/cv/analyze"), {
+    method: "POST",
+    body: formData
+  });
   } catch {
     throw new Error("Cannot connect to backend.");
   }
