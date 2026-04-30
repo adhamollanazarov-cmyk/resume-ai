@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     use_mock_ai: bool = False
     openai_api_key: str | None = None
     openai_model: str = "gpt-4o-mini"
+    groq_api_key: str | None = None
+    groq_model: str = "llama-3.3-70b-versatile"
     max_resume_chars: int = 12000
     max_job_description_chars: int = Field(
         default=6000,

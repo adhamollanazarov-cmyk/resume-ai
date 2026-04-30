@@ -97,6 +97,60 @@ function shortenText(value: string, maxLength: number): string {
   return `${normalized.slice(0, maxLength).trimEnd()}...`;
 }
 
+async function downloadTextAsPdf(title: string, text: string, fileName: string): Promise<void> {
+  const { jsPDF } = await import("jspdf");
+  const document = new jsPDF({
+    format: "a4",
+    unit: "pt",
+  });
+  const pageWidth = document.internal.pageSize.getWidth();
+  const pageHeight = document.internal.pageSize.getHeight();
+  const marginX = 48;
+  const marginTop = 56;
+  const marginBottom = 56;
+  const contentWidth = pageWidth - marginX * 2;
+  const lineHeight = 18;
+  let cursorY = marginTop;
+
+  const ensureSpace = (requiredHeight: number) => {
+    if (cursorY + requiredHeight <= pageHeight - marginBottom) {
+      return;
+    }
+
+    document.addPage();
+    cursorY = marginTop;
+  };
+
+  document.setFont("helvetica", "bold");
+  document.setFontSize(16);
+  const titleLines = document.splitTextToSize(title, contentWidth) as string[];
+  ensureSpace(titleLines.length * 22);
+  document.text(titleLines, marginX, cursorY);
+  cursorY += titleLines.length * 22 + 12;
+
+  document.setFont("helvetica", "normal");
+  document.setFontSize(11);
+
+  const contentLines = text.split("\n");
+  for (const rawLine of contentLines) {
+    if (!rawLine.trim()) {
+      cursorY += lineHeight * 0.7;
+      continue;
+    }
+
+    const wrappedLines = document.splitTextToSize(rawLine, contentWidth) as string[];
+    ensureSpace(wrappedLines.length * lineHeight);
+
+    for (const wrappedLine of wrappedLines) {
+      ensureSpace(lineHeight);
+      document.text(wrappedLine, marginX, cursorY);
+      cursorY += lineHeight;
+    }
+  }
+
+  document.save(fileName);
+}
+
 function SummaryList({ title, items }: { title: string; items: string[] }) {
   const visibleItems = items.slice(0, MAX_SUMMARY_ITEMS);
   const hiddenCount = Math.max(0, items.length - visibleItems.length);
@@ -127,12 +181,16 @@ function CopyBlock({
   copiedKey,
   copyKey,
   onCopy,
+  onDownload,
+  downloadFileName,
 }: {
   title: string;
   value: string;
   copiedKey: string | null;
   copyKey: string;
   onCopy: (value: string, key: string) => Promise<void>;
+  onDownload: (title: string, value: string, fileName: string) => Promise<void>;
+  downloadFileName: string;
 }) {
   const isCopied = copiedKey === copyKey;
 
@@ -140,13 +198,22 @@ function CopyBlock({
     <section className="rounded-2xl border border-gray-200 bg-gray-50 p-5 transition-all duration-200 hover:border-gray-300">
       <div className="flex items-start justify-between gap-4">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500">{title}</h2>
-        <button
-          type="button"
-          onClick={() => onCopy(value, copyKey)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 transition-all duration-200 ease-out hover:border-gray-300 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/10 active:scale-[0.99]"
-        >
-          {isCopied ? "Copied" : "Copy"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onCopy(value, copyKey)}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 transition-all duration-200 ease-out hover:border-gray-300 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/10 active:scale-[0.99]"
+          >
+            {isCopied ? "Copied" : "Copy"}
+          </button>
+          <button
+            type="button"
+            onClick={() => onDownload(title, value, downloadFileName)}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 transition-all duration-200 ease-out hover:border-gray-300 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/10 active:scale-[0.99]"
+          >
+            Download PDF
+          </button>
+        </div>
       </div>
       <div className="mt-4 whitespace-pre-wrap text-sm leading-7 text-gray-700">{value || "No content returned."}</div>
     </section>
@@ -188,6 +255,93 @@ function LoadingRail({ stepIndex }: { stepIndex: number }) {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function ResultSkeleton() {
+  return (
+    <div className="grid gap-5 animate-pulse">
+      <section className="rounded-2xl border border-gray-200 bg-white p-5">
+        <div className="h-3 w-28 rounded-full bg-gray-100" />
+        <div className="mt-4 space-y-3">
+          <div className="h-4 w-full rounded-full bg-gray-100" />
+          <div className="h-4 w-5/6 rounded-full bg-gray-100" />
+          <div className="h-4 w-4/6 rounded-full bg-gray-100" />
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-gray-200 bg-white p-6">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
+          <div className="h-36 w-36 rounded-full bg-gray-100" />
+          <div className="min-w-0 flex-1">
+            <div className="h-4 w-24 rounded-full bg-gray-100" />
+            <div className="mt-4 space-y-3">
+              <div className="h-4 w-full rounded-full bg-gray-100" />
+              <div className="h-4 w-11/12 rounded-full bg-gray-100" />
+              <div className="h-4 w-8/12 rounded-full bg-gray-100" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="grid gap-4 xl:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <section key={index} className="rounded-2xl border border-gray-200 bg-white p-5">
+            <div className="h-3 w-24 rounded-full bg-gray-100" />
+            <div className="mt-4 space-y-3">
+              <div className="h-4 w-full rounded-full bg-gray-100" />
+              <div className="h-4 w-10/12 rounded-full bg-gray-100" />
+              <div className="h-4 w-8/12 rounded-full bg-gray-100" />
+            </div>
+          </section>
+        ))}
+      </div>
+
+      {Array.from({ length: 2 }).map((_, index) => (
+        <section key={index} className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
+          <div className="flex items-center justify-between gap-4">
+            <div className="h-3 w-32 rounded-full bg-gray-100" />
+            <div className="h-8 w-36 rounded-xl bg-gray-100" />
+          </div>
+          <div className="mt-4 space-y-3">
+            <div className="h-4 w-full rounded-full bg-gray-100" />
+            <div className="h-4 w-full rounded-full bg-gray-100" />
+            <div className="h-4 w-11/12 rounded-full bg-gray-100" />
+            <div className="h-4 w-10/12 rounded-full bg-gray-100" />
+            <div className="h-4 w-9/12 rounded-full bg-gray-100" />
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function HistorySkeleton() {
+  return (
+    <div className="grid gap-5 animate-pulse">
+      <section className="rounded-2xl border border-gray-200 bg-white p-5">
+        <div className="h-3 w-20 rounded-full bg-gray-100" />
+        <div className="mt-4 space-y-3">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="rounded-xl border border-gray-200 bg-white px-4 py-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-3">
+                    <div className="h-6 w-14 rounded-full bg-gray-100" />
+                    <div className="h-3 w-24 rounded-full bg-gray-100" />
+                  </div>
+                  <div className="mt-3 space-y-2">
+                    <div className="h-4 w-full rounded-full bg-gray-100" />
+                    <div className="h-4 w-5/6 rounded-full bg-gray-100" />
+                  </div>
+                </div>
+                <div className="h-8 w-16 rounded-lg bg-gray-100" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
@@ -262,11 +416,13 @@ function CurrentResultView({
   jobDescription,
   copiedKey,
   onCopy,
+  onDownload,
 }: {
   analysis: AIAnalysisResult;
   jobDescription: string;
   copiedKey: string | null;
   onCopy: (value: string, key: string) => Promise<void>;
+  onDownload: (title: string, value: string, fileName: string) => Promise<void>;
 }) {
   return (
     <div className="grid gap-5">
@@ -293,6 +449,8 @@ function CurrentResultView({
         copiedKey={copiedKey}
         copyKey="optimized_resume"
         onCopy={onCopy}
+        onDownload={onDownload}
+        downloadFileName="optimized-resume.pdf"
       />
 
       <CopyBlock
@@ -301,6 +459,8 @@ function CurrentResultView({
         copiedKey={copiedKey}
         copyKey="cover_letter"
         onCopy={onCopy}
+        onDownload={onDownload}
+        downloadFileName="cover-letter.pdf"
       />
 
       {analysis.risk_flags.length > 0 ? (
@@ -345,19 +505,14 @@ function HistoryView({
   }
 
   if (isLoadingList && items === null) {
-    return (
-      <div className="rounded-2xl border border-dashed border-gray-200 bg-[#FCFCFC] px-7 py-8 text-center">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-400">HISTORY</p>
-        <p className="mt-3 text-base font-medium tracking-tight text-gray-900">Loading analyses...</p>
-      </div>
-    );
+    return <HistorySkeleton />;
   }
 
   if (items !== null && items.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-gray-200 bg-[#FCFCFC] px-7 py-8 text-center">
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-400">HISTORY</p>
-        <p className="mt-3 text-base font-medium tracking-tight text-gray-900">No analyses yet.</p>
+        <p className="mt-3 text-base font-medium tracking-tight text-gray-900">No saved analyses yet.</p>
       </div>
     );
   }
@@ -478,15 +633,15 @@ export default function Home() {
       const items = await getAnalyses();
       setHistoryItems(items);
     } catch (caughtError) {
-      const message = caughtError instanceof Error ? caughtError.message : "Failed to load analyses.";
+      const message = caughtError instanceof Error ? caughtError.message : "Could not load history.";
       setHistoryError(
         message.startsWith("Cannot connect to backend.")
           ? {
-              title: "Cannot connect to backend",
+              title: "Could not load history.",
               description: "Make sure FastAPI is running.",
             }
           : {
-              title: "History unavailable",
+              title: "Could not load history.",
               description: message,
             },
       );
@@ -516,15 +671,15 @@ export default function Home() {
       });
       setActiveTab("current");
     } catch (caughtError) {
-      const message = caughtError instanceof Error ? caughtError.message : "Failed to load analysis detail.";
+      const message = caughtError instanceof Error ? caughtError.message : "Could not load history.";
       setHistoryError(
         message.startsWith("Cannot connect to backend.")
           ? {
-              title: "Cannot connect to backend",
+              title: "Could not load history.",
               description: "Make sure FastAPI is running.",
             }
           : {
-              title: "History detail unavailable",
+              title: "Could not load history.",
               description: message,
             },
       );
@@ -570,6 +725,17 @@ export default function Home() {
       setRequestError({
         title: "Copy unavailable.",
         description: "Clipboard access is blocked in this browser context.",
+      });
+    }
+  }
+
+  async function handleDownloadPdf(title: string, value: string, fileName: string) {
+    try {
+      await downloadTextAsPdf(title, value, fileName);
+    } catch {
+      setRequestError({
+        title: "Download unavailable.",
+        description: "The PDF could not be generated in this browser context.",
       });
     }
   }
@@ -804,9 +970,12 @@ export default function Home() {
                         jobDescription={result?.job_description ?? jobDescription}
                         copiedKey={copiedKey}
                         onCopy={copyToClipboard}
+                        onDownload={handleDownloadPdf}
                       />
                     </div>
                   ) : null}
+
+                  {isLoading ? <ResultSkeleton /> : null}
                 </>
               ) : (
                 <HistoryView

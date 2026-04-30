@@ -163,6 +163,7 @@ async def analyze_cv(
     try:
         analysis = await analyze_resume(resume_text, job_description)
     except Exception:
+        logger.exception("AI analysis failed.")
         analysis = None
 
     analysis_payload = _to_analysis_dict(analysis) if analysis is not None else None
