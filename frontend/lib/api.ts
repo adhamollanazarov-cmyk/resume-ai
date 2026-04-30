@@ -39,7 +39,10 @@ function getApiUrl(path: string): string {
     throw new Error("NEXT_PUBLIC_API_URL is not defined");
   }
 
-  return new URL(path, API_URL).toString();
+  const baseUrl = API_URL.replace(/\/+$/, "");
+  const cleanPath = path.replace(/^\/+/, "");
+
+  return `${baseUrl}/${cleanPath}`;
 }
 async function parseResponse<T>(response: Response, fallbackMessage: string): Promise<T> {
   if (!response.ok) {
