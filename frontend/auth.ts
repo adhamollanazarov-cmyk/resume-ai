@@ -98,6 +98,19 @@ export const authOptions: NextAuthOptions = {
       }
 
       const shouldSync = Boolean(user) || trigger === "update" || !token.userId;
+      console.log("[auth] JWT callback", {
+      hasEmail: Boolean(token.email),
+      hasUser: Boolean(user),
+      trigger,
+      hasUserId: Boolean(token.userId),
+      shouldSync,
+    });
+
+      console.log("[auth] sync target", {
+        apiUrl: process.env.API_URL,
+        hasInternalSecret: Boolean(process.env.INTERNAL_API_SECRET),
+      });
+
       if (!shouldSync) {
         return token;
       }
