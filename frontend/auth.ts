@@ -96,39 +96,25 @@ export const authOptions: NextAuthOptions = {
     // FIX 2: Only sync on initial sign-in or explicit session update,
     // not on every request. The `user` object is only present on sign-in.
     async jwt({ token, user, trigger }) {
-      if (!user && trigger !== "update") {
-        return token;
-      }
+  if (!user && trigger !== "update") return token;
+  if (!token.email) return token;
 
-      if (!token.email) {
-        return token;
-      }
+  try {
+    const syncedUser = await syncUserRecord({ ... });
+    token.userId = syncedUser.id;
+    token.plan = syncedUser.plan;
+    token.analysisCount = syncedUser.analysis_count;
+    token.name = syncedUser.name ?? token.name;
+    token.picture = syncedUser.image ?? token.picture;
+  } catch (error) {
+    // Backend missing endpoint — allow login anyway
+    console.error("[auth] syncUserRecord failed:", error);
+    token.plan = "free";
+    token.analysisCount = 0;
+  }
 
-      try {
-        const syncedUser = await syncUserRecord({
-          email: token.email,
-          name:
-            user?.name ?? (typeof token.name === "string" ? token.name : null),
-          image:
-            user?.image ??
-            (typeof token.picture === "string" ? token.picture : null),
-        });
-
-        token.userId = syncedUser.id;
-        token.plan = syncedUser.plan;
-        token.analysisCount = syncedUser.analysis_count;
-        token.name = syncedUser.name ?? token.name;
-        token.picture = syncedUser.image ?? token.picture;
-      } catch (error) {
-        logAuthIssue(
-          "User sync failed during JWT refresh, preserving the OAuth token.",
-          error,
-          { provider: "github" }
-        );
-      }
-
-      return token;
-    },
+  return token;
+},
 
     async session({ session, token }) {
       if (session.user) {
