@@ -11,6 +11,7 @@ const githubClientId = process.env.GITHUB_CLIENT_ID ?? "";
 const githubClientSecret = process.env.GITHUB_CLIENT_SECRET ?? "";
 
 export const authOptions: NextAuthOptions = {
+  debug: true,
   secret: process.env.AUTH_SECRET,
   pages: {
     signIn: "/login",
