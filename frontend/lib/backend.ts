@@ -96,11 +96,26 @@ export async function syncUserRecord(payload: {
   image?: string | null;
   name?: string | null;
 }): Promise<SyncedUser> {
-  const response = await backendFetch("/api/auth/sync-user", {
-    method: "POST",
-    headers: internalHeaders({ "Content-Type": "application/json" }),
-    body: JSON.stringify(payload),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch(`${getBackendBaseUrl()}/api/auth/sync-user`, {
+      method: "POST",
+      headers: internalHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(payload),
+      cache: "no-store",
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("Could not sync the signed-in user. Request timed out.");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
 
   return parseBackendJsonResponse<SyncedUser>(
     response,
