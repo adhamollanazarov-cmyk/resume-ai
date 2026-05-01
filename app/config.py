@@ -22,46 +22,37 @@ class Settings(BaseSettings):
     max_pdf_size_mb: int = 5
     database_url: str | None = None
     frontend_url: str | None = Field(
-        default=None,
-        validation_alias=AliasChoices("FRONTEND_URL"),
-    )
-    frontend_origins: str = ""
+    default=None,
+    validation_alias=AliasChoices("FRONTEND_URL"),
+)
+
+frontend_origins: str = Field(
+    default="http://localhost:3000,http://127.0.0.1:3000",
+    validation_alias=AliasChoices("FRONTEND_ORIGINS"),
+)
 
 @property
 def cors_origins(self) -> list[str]:
-    if not self.frontend_origins:
-        return [
-            "http://localhost:3000",
-            "http://127.0.0.1:3000",
-        ]
-    return [
-        origin.strip().rstrip("/")
-        for origin in self.frontend_origins.split(",")
-    ]
+    origins: list[str] = []
+    seen: set[str] = set()
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore",
-    )
+    raw_origins = self.frontend_origins.split(",")
+    if self.frontend_url:
+        raw_origins.append(self.frontend_url)
 
-    @property
-    def cors_origins(self) -> list[str]:
-        origins: list[str] = []
-        seen: set[str] = set()
+    for origin in raw_origins:
+        origin = origin.strip().rstrip("/")
+        if origin and origin not in seen:
+            origins.append(origin)
+            seen.add(origin)
 
-        for origin in [*self.frontend_origins, self.frontend_url]:
-            if not origin:
-                continue
+    return origins
 
-            normalized_origin = origin.rstrip("/")
-            if normalized_origin in seen:
-                continue
-
-            seen.add(normalized_origin)
-            origins.append(normalized_origin)
-
-        return origins
+model_config = SettingsConfigDict(
+    env_file=".env",
+    env_file_encoding="utf-8",
+    extra="ignore",
+)
 
 
 settings = Settings()
