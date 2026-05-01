@@ -194,7 +194,8 @@ def _parse_analysis_payload(payload: str) -> dict[str, object]:
     try:
         analysis = AIAnalysisResult.model_validate(parsed_payload)
     except ValidationError as exc:
-        raise RuntimeError("Groq response did not match the expected analysis schema.") from exc
+        print("❌ Groq schema error:", parsed_payload)
+        return _build_mock_analysis("", "")
 
     return analysis.model_dump()
 
