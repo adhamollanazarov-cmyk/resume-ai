@@ -224,3 +224,5 @@ export async function getUserAnalysis(
     "Could not load that analysis.",
   );
 }
+console.log("SYNC URL:", process.env.NEXT_PUBLIC_API_URL);
+console.log("Calling sync-user...");
