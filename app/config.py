@@ -25,9 +25,18 @@ class Settings(BaseSettings):
         default=None,
         validation_alias=AliasChoices("FRONTEND_URL"),
     )
-    frontend_origins: list[str] = [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
+    frontend_origins: str = ""
+
+@property
+def cors_origins(self) -> list[str]:
+    if not self.frontend_origins:
+        return [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+        ]
+    return [
+        origin.strip().rstrip("/")
+        for origin in self.frontend_origins.split(",")
     ]
 
     model_config = SettingsConfigDict(
