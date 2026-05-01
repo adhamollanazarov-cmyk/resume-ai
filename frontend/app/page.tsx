@@ -14,19 +14,19 @@ export default async function LandingPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">AI RESUME ANALYZER</p>
             <h1 className="mt-5 text-4xl font-semibold tracking-tight text-gray-950 sm:text-5xl">Sign in and keep your resume work in one place.</h1>
             <p className="mt-5 text-base leading-8 text-gray-600">
-              Google login gives each user a simple dashboard with their email, plan, and analysis count. This keeps the first auth step small and production-shaped.
+              GitHub login gives each user a simple dashboard with their email, plan, and analysis count. This keeps the first auth step small and production-shaped.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href={session?.user?.id ? "/dashboard" : "/login"}
                 className="rounded-xl bg-black px-5 py-3 text-sm font-medium text-white transition-all duration-200 ease-out hover:bg-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/10 active:scale-[0.99]"
               >
-                {session?.user?.id ? "Open dashboard" : "Start with Google"}
+                {session?.user?.id ? "Open dashboard" : "Start with GitHub"}
               </Link>
             </div>
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
               {[
-                ["Google sign-in", "A low-friction auth flow using Auth.js and Google OAuth."],
+                ["GitHub sign-in", "A low-friction auth flow using Auth.js and GitHub OAuth."],
                 ["Protected dashboard", "Server-side route protection keeps the dashboard behind login."],
                 ["Stored users", "User records are synced into PostgreSQL with plan and analysis count."],
               ].map(([title, copy]) => (

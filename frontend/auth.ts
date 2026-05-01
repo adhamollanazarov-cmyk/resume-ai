@@ -1,10 +1,14 @@
 import { getServerSession, type NextAuthOptions } from "next-auth";
-import Google from "next-auth/providers/google";
+import GitHub from "next-auth/providers/github";
 
 import { syncUserRecord } from "@/lib/backend";
 
-const googleClientId = process.env.GOOGLE_CLIENT_ID ?? "";
-const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET ?? "";
+if (!process.env.NEXTAUTH_URL && process.env.AUTH_URL) {
+  process.env.NEXTAUTH_URL = process.env.AUTH_URL;
+}
+
+const githubClientId = process.env.GITHUB_CLIENT_ID ?? "";
+const githubClientSecret = process.env.GITHUB_CLIENT_SECRET ?? "";
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.AUTH_SECRET,
@@ -12,9 +16,9 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   providers: [
-    Google({
-      clientId: googleClientId,
-      clientSecret: googleClientSecret,
+    GitHub({
+      clientId: githubClientId,
+      clientSecret: githubClientSecret,
     }),
   ],
   session: {
