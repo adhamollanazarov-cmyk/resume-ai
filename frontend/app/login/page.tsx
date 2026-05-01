@@ -1,3 +1,7 @@
+import Link from "next/link";
+
+import { isDemoAuthEnabled } from "@/lib/auth-helpers";
+
 type LoginPageProps = {
   searchParams?: Promise<{
     callbackUrl?: string;
@@ -8,6 +12,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
   const callbackUrl = params?.callbackUrl ?? "/dashboard";
   const signInUrl = `/api/auth/signin/github?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+  const demoAuthEnabled = isDemoAuthEnabled();
 
   return (
     <main className="min-h-screen bg-[#FAFAFA] px-5 py-16 sm:px-8 lg:px-10 lg:py-20">
@@ -25,6 +30,15 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           >
             Continue with GitHub
           </a>
+
+          {demoAuthEnabled ? (
+            <Link
+              href="/dashboard"
+              className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition-all duration-200 ease-out hover:border-gray-300 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/10 active:scale-[0.99]"
+            >
+              Continue in demo mode
+            </Link>
+          ) : null}
         </div>
       </div>
     </main>

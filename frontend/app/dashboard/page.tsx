@@ -3,7 +3,7 @@ import Link from "next/link";
 import ManageBillingButton from "@/app/components/ManageBillingButton";
 import UpgradeButton from "@/app/components/UpgradeButton";
 import { getUserAnalyses } from "@/lib/backend";
-import { requireCurrentUser } from "@/lib/auth-helpers";
+import { isDemoAuthEnabled, requireCurrentUser } from "@/lib/auth-helpers";
 
 const FREE_ANALYSIS_LIMIT = 3;
 
@@ -17,7 +17,8 @@ type DashboardPageProps = {
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const user = await requireCurrentUser();
   const params = await searchParams;
-  const recentAnalyses = await getUserAnalyses(user.id, { limit: 5 }).catch(() => []);
+  const demoAuthEnabled = isDemoAuthEnabled();
+  const recentAnalyses = demoAuthEnabled ? [] : await getUserAnalyses(user.id, { limit: 5 }).catch(() => []);
   const remainingFreeAnalyses =
     user.plan === "pro" ? "Unlimited" : String(Math.max(FREE_ANALYSIS_LIMIT - user.analysisCount, 0));
 
@@ -38,6 +39,11 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           {params?.upgrade === "cancelled" ? (
             <div className="mt-5 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600">
               Upgrade checkout was cancelled. You can try again anytime.
+            </div>
+          ) : null}
+          {demoAuthEnabled ? (
+            <div className="mt-5 rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm text-indigo-700">
+              Demo mode is active. This dashboard uses a mock user, and account-specific billing or saved-history actions stay disabled.
             </div>
           ) : null}
         </header>
@@ -69,7 +75,11 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                 Free users keep 3 successful analyses total. Pro users keep unlimited access.
               </p>
             </div>
-            {user.plan === "pro" ? (
+            {demoAuthEnabled ? (
+              <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm text-gray-500">
+                Demo mode
+              </div>
+            ) : user.plan === "pro" ? (
               <div className="flex flex-col items-start gap-3 sm:items-end">
                 <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700">
                   Pro active
@@ -116,7 +126,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             </div>
           ) : (
             <div className="mt-5 rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-5 py-6 text-sm text-gray-500">
-              No saved analyses yet.
+              {demoAuthEnabled ? "Demo mode does not load saved analyses." : "No saved analyses yet."}
             </div>
           )}
         </section>
