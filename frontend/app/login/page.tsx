@@ -2,49 +2,29 @@ import Link from "next/link";
 import { isDemoAuthEnabled } from "@/lib/auth-helpers";
 
 type LoginPageProps = {
-  searchParams?: Promise<{
-    callbackUrl?: string;
-  }>;
+  searchParams?: Promise<{ callbackUrl?: string }>;
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
   const callbackUrl = params?.callbackUrl ?? "/dashboard";
   const encoded = encodeURIComponent(callbackUrl);
-
-  const githubSignInUrl = `/api/auth/signin/github?callbackUrl=${encoded}`;
-  const googleSignInUrl = `/api/auth/signin/google?callbackUrl=${encoded}`;
-
-  const demoAuthEnabled = isDemoAuthEnabled();
+  const githubUrl = `/api/auth/signin/github?callbackUrl=${encoded}`;
+  const googleUrl = `/api/auth/signin/google?callbackUrl=${encoded}`;
+  const demoEnabled = isDemoAuthEnabled();
 
   return (
     <main className="min-h-screen bg-[#FAFAFA] px-5 py-16 sm:px-8 lg:px-10 lg:py-20">
       <div className="mx-auto max-w-md">
         <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.04)]">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">Welcome</p>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-gray-950">
-            Sign in to your dashboard.
-          </h1>
-          <p className="mt-4 text-sm leading-7 text-gray-500">
-            Use GitHub or Google to save analyses, track your usage, and unlock upgrades.
-          </p>
-
-          {/* GitHub */}
-          
-            href={githubSignInUrl}
-            className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-black px-5 py-3 text-sm font-medium text-white transition-all duration-200 ease-out hover:bg-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/10 active:scale-[0.99]"
-          <a>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
-            </svg>
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-gray-950">Sign in to your dashboard.</h1>
+          <p className="mt-4 text-sm leading-7 text-gray-500">Use GitHub or Google to save analyses, track your usage, and unlock upgrades.</p>
+          <a href={githubUrl} className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-black px-5 py-3 text-sm font-medium text-white transition-all duration-200 ease-out hover:bg-gray-900 active:scale-[0.99]">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
             Continue with GitHub
           </a>
-
-          {/* Google */}
-          
-            href={googleSignInUrl}
-            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition-all duration-200 ease-out hover:border-gray-300 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/10 active:scale-[0.99]"
-          <a>
+          <a href={googleUrl} className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition-all duration-200 ease-out hover:border-gray-300 hover:bg-gray-50 active:scale-[0.99]">
             <svg width="16" height="16" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -53,12 +33,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </svg>
             Continue with Google
           </a>
-
-          {demoAuthEnabled ? (
-            <Link
-              href="/dashboard"
-              className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition-all duration-200 ease-out hover:border-gray-300 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/10 active:scale-[0.99]"
-            >
+          {demoEnabled ? (
+            <Link href="/dashboard" className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition-all duration-200 ease-out hover:border-gray-300 hover:bg-gray-50 active:scale-[0.99]">
               Continue in demo mode
             </Link>
           ) : null}
