@@ -20,6 +20,7 @@ app = FastAPI(
     description="Backend API for resume PDF analysis and job description matching.",
     version=settings.app_version,
 )
+print("CORS ORIGINS:", settings.cors_origins)
 
 app.add_middleware(
     CORSMiddleware,
