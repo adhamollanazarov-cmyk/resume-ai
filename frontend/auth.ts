@@ -1,5 +1,6 @@
 import { getServerSession, type NextAuthOptions } from "next-auth";
 import GitHub from "next-auth/providers/github";
+import Google from "next-auth/providers/google";
 
 import { syncUserRecord } from "@/lib/backend";
 
@@ -28,6 +29,8 @@ if (!process.env.AUTH_SECRET && resolvedAuthSecret) {
 
 const githubClientId = process.env.GITHUB_CLIENT_ID ?? "";
 const githubClientSecret = process.env.GITHUB_CLIENT_SECRET ?? "";
+const googleClientId = process.env.AUTH_GOOGLE_ID ?? "";
+const googleClientSecret = process.env.AUTH_GOOGLE_SECRET ?? "";
 
 function logAuthIssue(
   message: string,
@@ -78,20 +81,23 @@ export const authOptions: NextAuthOptions = {
         },
       },
     }),
-  ],
+    Google({                           // ← добавь это
+    clientId: googleClientId,
+    clientSecret: googleClientSecret,
+  }),
+],
   session: {
     strategy: "jwt",
   },
   callbacks: {
-    async signIn({ user }) {
-      if (!user.email) {
-        logAuthIssue("GitHub sign-in completed without an email address.", undefined, {
-          provider: "github",
-        });
-      }
-
-      return true;
-    },
+    async signIn({ user, account }) {
+  if (!user.email) {
+    logAuthIssue("Sign-in completed without an email address.", undefined, {
+      provider: account?.provider ?? "unknown",
+    });
+  }
+  return true;
+},
     async jwt({ token, user, trigger }) {
       if (!token.email) {
         return token;
