@@ -7,6 +7,7 @@ const resolvedAuthUrl =
   process.env.AUTH_URL ??
   process.env.NEXTAUTH_URL ??
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
+
 const resolvedAuthSecret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
 
 if (!process.env.NEXTAUTH_URL && resolvedAuthUrl) {
@@ -29,23 +30,25 @@ const githubClientId = process.env.GITHUB_CLIENT_ID ?? "";
 const githubClientSecret = process.env.GITHUB_CLIENT_SECRET ?? "";
 const authSecret = resolvedAuthSecret;
 
-function logAuthIssue(message: string, error?: unknown, context?: Record<string, string | undefined>) {
+function logAuthIssue(
+  message: string,
+  error?: unknown,
+  context?: Record<string, string | undefined>
+) {
   const safeError =
     error instanceof Error
-      ? {
-          name: error.name,
-          message: error.message,
-        }
+      ? { name: error.name, message: error.message }
       : error;
 
   const safeContext = context
-    ? Object.fromEntries(Object.entries(context).filter(([, value]) => typeof value === "string" && value.trim().length > 0))
+    ? Object.fromEntries(
+        Object.entries(context).filter(
+          ([, value]) => typeof value === "string" && value.trim().length > 0
+        )
+      )
     : undefined;
 
-  console.error("[auth]", message, {
-    error: safeError,
-    context: safeContext,
-  });
+  console.error("[auth]", message, { error: safeError, context: safeContext });
 }
 
 export const authOptions: NextAuthOptions = {
@@ -77,29 +80,26 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
+    // FIX 1: Removed redundant syncUserRecord call here.
+    // The jwt callback always runs right after signIn and handles syncing.
     async signIn({ user }) {
       if (!user.email) {
-        logAuthIssue("GitHub sign-in completed without an email address.", undefined, {
-          provider: "github",
-        });
-        return true;
+        logAuthIssue(
+          "GitHub sign-in completed without an email address.",
+          undefined,
+          { provider: "github" }
+        );
       }
-
-      try {
-        await syncUserRecord({
-          email: user.email,
-          name: user.name,
-          image: user.image,
-        });
-      } catch (error) {
-        logAuthIssue("User sync failed during sign in, continuing with OAuth session.", error, {
-          provider: "github",
-        });
-      }
-
       return true;
     },
-    async jwt({ token, user }) {
+
+    // FIX 2: Only sync on initial sign-in or explicit session update,
+    // not on every request. The `user` object is only present on sign-in.
+    async jwt({ token, user, trigger }) {
+      if (!user && trigger !== "update") {
+        return token;
+      }
+
       if (!token.email) {
         return token;
       }
@@ -107,8 +107,11 @@ export const authOptions: NextAuthOptions = {
       try {
         const syncedUser = await syncUserRecord({
           email: token.email,
-          name: user?.name ?? (typeof token.name === "string" ? token.name : null),
-          image: user?.image ?? (typeof token.picture === "string" ? token.picture : null),
+          name:
+            user?.name ?? (typeof token.name === "string" ? token.name : null),
+          image:
+            user?.image ??
+            (typeof token.picture === "string" ? token.picture : null),
         });
 
         token.userId = syncedUser.id;
@@ -117,21 +120,22 @@ export const authOptions: NextAuthOptions = {
         token.name = syncedUser.name ?? token.name;
         token.picture = syncedUser.image ?? token.picture;
       } catch (error) {
-        logAuthIssue("User sync failed during JWT refresh, preserving the OAuth token.", error, {
-          provider: "github",
-        });
-        return token;
+        logAuthIssue(
+          "User sync failed during JWT refresh, preserving the OAuth token.",
+          error,
+          { provider: "github" }
+        );
       }
 
       return token;
     },
+
     async session({ session, token }) {
       if (session.user) {
         session.user.id = String(token.userId ?? "");
         session.user.plan = token.plan === "pro" ? "pro" : "free";
         session.user.analysisCount = Number(token.analysisCount ?? 0);
       }
-
       return session;
     },
   },
