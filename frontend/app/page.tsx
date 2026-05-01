@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import AnalyzerWorkspace from "@/app/components/AnalyzerWorkspace";
+import ExampleResult from "@/app/components/ExampleResult";
 import { getCurrentSession } from "@/lib/auth-helpers";
 
 export default async function LandingPage() {
@@ -68,7 +69,9 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        <section className="grid gap-6">
+        <ExampleResult />
+
+        <section id="analyze" className="grid gap-6 scroll-mt-24">
           <div className="max-w-2xl">
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">Analyze</p>
             <h2 className="mt-4 text-3xl font-semibold tracking-tight text-gray-950">Run a real resume analysis.</h2>

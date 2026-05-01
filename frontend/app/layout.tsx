@@ -6,8 +6,36 @@ import { getCurrentSession } from "@/lib/auth-helpers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AI Resume Analyzer",
-  description: "Analyze resumes, optimize role fit, and manage usage in a calm SaaS dashboard.",
+  metadataBase: new URL("https://resume-ai-hazel-two.vercel.app"),
+  title: "ResumeAI — Match Your Resume to Any Job in Seconds",
+  description:
+    "Upload your resume, paste a job description, get instant AI analysis: match score, ATS keywords, rewritten bullets, and a personalized cover letter.",
+  keywords: ["resume analyzer", "ATS checker", "cover letter generator", "job match"],
+  alternates: {
+    canonical: "https://resume-ai-hazel-two.vercel.app",
+  },
+  openGraph: {
+    title: "ResumeAI — Match Your Resume to Any Job in Seconds",
+    description:
+      "Upload your resume, paste a job description, get instant AI analysis: match score, ATS keywords, rewritten bullets, and a personalized cover letter.",
+    url: "https://resume-ai-hazel-two.vercel.app",
+    type: "website",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "ResumeAI preview with an example 87 percent match score card.",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ResumeAI — Match Your Resume to Any Job in Seconds",
+    description:
+      "Upload your resume, paste a job description, get instant AI analysis: match score, ATS keywords, rewritten bullets, and a personalized cover letter.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default async function RootLayout({

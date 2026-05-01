@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import AnalysisResultPanel from "@/app/components/AnalysisResultPanel";
+import AnalysisResult from "@/app/components/AnalysisResult";
 import { requireCurrentUser } from "@/lib/auth-helpers";
 import { getUserAnalysis } from "@/lib/backend";
 
@@ -51,10 +51,7 @@ export default async function AnalysisDetailPage({ params }: AnalysisDetailPageP
           </div>
         </header>
 
-        <AnalysisResultPanel
-          analysis={analysisDetail.analysis_json}
-          jobDescription={analysisDetail.job_description}
-        />
+        <AnalysisResult analysis={analysisDetail.analysis_json} jobDescription={analysisDetail.job_description} />
       </div>
     </main>
   );

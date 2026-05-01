@@ -1,9 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
+import PricingCard from "@/app/components/PricingCard";
 import ManageBillingButton from "@/app/components/ManageBillingButton";
 import UpgradeButton from "@/app/components/UpgradeButton";
 import { getUserAnalyses } from "@/lib/backend";
-import { isDemoAuthEnabled, requireCurrentUser } from "@/lib/auth-helpers";
+import { getCurrentSession, isDemoAuthEnabled, requireCurrentUser } from "@/lib/auth-helpers";
 
 const FREE_ANALYSIS_LIMIT = 3;
 
@@ -13,6 +15,15 @@ type DashboardPageProps = {
     upgraded?: string;
   }>;
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  const session = await getCurrentSession();
+  const rawName = session?.user?.name?.trim();
+
+  return {
+    title: rawName ? `${rawName}'s Dashboard — ResumeAI` : "Dashboard — ResumeAI",
+  };
+}
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const user = await requireCurrentUser();
@@ -29,7 +40,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">Dashboard</p>
             <h1 className="mt-4 text-4xl font-semibold tracking-tight text-gray-950">Your account</h1>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-500">A simple protected dashboard showing the authenticated user record synced from Google login.</p>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-500">A simple protected dashboard showing the authenticated user record synced from GitHub login.</p>
           </div>
           {params?.upgraded === "1" ? (
             <div className="mt-5 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
@@ -89,6 +100,10 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             ) : (
               <UpgradeButton label="Upgrade to Pro" />
             )}
+          </div>
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            <PricingCard currentPlan={user.plan} isDemoMode={demoAuthEnabled} isSignedIn={!demoAuthEnabled} plan="free" />
+            <PricingCard currentPlan={user.plan} isDemoMode={demoAuthEnabled} isSignedIn={!demoAuthEnabled} plan="pro" />
           </div>
         </section>
 

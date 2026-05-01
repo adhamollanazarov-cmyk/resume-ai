@@ -2,8 +2,8 @@
 
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 
-import AnalysisResultPanel from "@/app/components/AnalysisResultPanel";
-import UpgradeButton from "@/app/components/UpgradeButton";
+import AnalysisResult from "@/app/components/AnalysisResult";
+import UpgradeBanner from "@/app/components/UpgradeBanner";
 import { AnalyzeResponse, analyzeResume } from "@/lib/api";
 
 const EMPTY_FILE_MESSAGE = "Please upload a PDF resume.";
@@ -285,19 +285,16 @@ export default function AnalyzerWorkspace() {
           </div>
         ) : null}
 
-        {requestError ? (
+        {requestError && isLimitError ? (
+          <div className="mt-5">
+            <UpgradeBanner currentCount={3} isSignedIn limit={3} />
+          </div>
+        ) : null}
+
+        {requestError && !isLimitError ? (
           <div className="mt-5 rounded-xl border border-red-100 bg-red-50 px-4 py-4 text-sm">
             <p className="font-medium text-red-600">{requestError.title}</p>
             <p className="mt-1 leading-6 text-red-600">{requestError.description}</p>
-            {isLimitError ? (
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <UpgradeButton
-                  label="Upgrade to Pro"
-                  className="px-4 py-2 text-xs"
-                  helperClassName="text-red-500"
-                />
-              </div>
-            ) : null}
           </div>
         ) : null}
 
@@ -339,7 +336,7 @@ export default function AnalyzerWorkspace() {
             </div>
           ) : null}
 
-          {analysis ? <AnalysisResultPanel analysis={analysis} jobDescription={result?.job_description ?? jobDescription} /> : null}
+          {analysis ? <AnalysisResult analysis={analysis} jobDescription={result?.job_description ?? jobDescription} /> : null}
 
           {isLoading ? <ResultSkeleton /> : null}
         </div>

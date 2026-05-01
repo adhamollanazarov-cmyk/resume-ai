@@ -1,4 +1,5 @@
 import { AIAnalysisResult } from "@/lib/api";
+import { getResumeImprovementSections, getRewrittenBullets } from "@/lib/analysis";
 
 type RecommendationCard = {
   items: string[];
@@ -6,34 +7,31 @@ type RecommendationCard = {
 };
 
 function buildSections(analysis: AIAnalysisResult): RecommendationCard[] {
+  const improvements = getResumeImprovementSections(analysis);
+  const rewrittenBullets = getRewrittenBullets(analysis);
+
   return [
     {
       title: "Skills improvements",
-      items:
-        analysis.missing_skills.length > 0
-          ? analysis.missing_skills.map((skill) => `Show direct evidence of ${skill}.`)
-          : ["Core skill coverage is already visible in the resume."],
+      items: improvements.skills.length > 0 ? improvements.skills : ["Core skill coverage is already visible in the resume."],
     },
     {
       title: "Experience improvements",
       items:
-        analysis.rewritten_bullets.length > 0
-          ? analysis.rewritten_bullets
+        rewrittenBullets.length > 0
+          ? rewrittenBullets.map((item) => item.after)
           : ["No rewritten bullets were returned for this role."],
     },
     {
       title: "Keyword optimization",
       items:
-        analysis.keyword_gaps.length > 0
-          ? analysis.keyword_gaps.map((keyword) => `Mirror the job language for "${keyword}" where truthful.`)
+        improvements.keywords.length > 0
+          ? improvements.keywords.map((keyword) => `Mirror the job language for "${keyword}" where truthful.`)
           : ["Keyword alignment looks healthy for the current target role."],
     },
     {
       title: "General resume improvements",
-      items:
-        analysis.resume_improvements.length > 0
-          ? analysis.resume_improvements
-          : ["No additional general resume improvements were returned."],
+      items: improvements.general.length > 0 ? improvements.general : ["No additional general resume improvements were returned."],
     },
   ];
 }

@@ -1,5 +1,5 @@
 import { AIAnalysisResult } from "@/lib/api";
-import { estimateScoreBreakdown, getScoreTone } from "@/lib/analysis";
+import { estimateScoreBreakdown, getAnalysisMatchScore, getAnalysisScoreReasoning, getScoreTone } from "@/lib/analysis";
 
 type ScoreBreakdownProps = {
   analysis: AIAnalysisResult;
@@ -23,11 +23,13 @@ function BreakdownBar({ detail, label, score }: { detail: string; label: string;
 }
 
 export default function ScoreBreakdown({ analysis }: ScoreBreakdownProps) {
-  const tone = getScoreTone(analysis.match_score);
+  const matchScore = getAnalysisMatchScore(analysis);
+  const scoreReasoning = getAnalysisScoreReasoning(analysis);
+  const tone = getScoreTone(matchScore);
   const breakdown = estimateScoreBreakdown(analysis);
   const radius = 52;
   const circumference = 2 * Math.PI * radius;
-  const progress = (analysis.match_score / 100) * circumference;
+  const progress = (matchScore / 100) * circumference;
 
   return (
     <section className="rounded-2xl border border-gray-200 bg-white p-6 transition-all duration-200 hover:border-gray-300">
@@ -49,7 +51,7 @@ export default function ScoreBreakdown({ analysis }: ScoreBreakdownProps) {
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-4xl font-semibold tracking-tight text-gray-950">{analysis.match_score}%</span>
+              <span className="text-4xl font-semibold tracking-tight text-gray-950">{matchScore}%</span>
               <span className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Match score</span>
             </div>
           </div>
@@ -60,7 +62,7 @@ export default function ScoreBreakdown({ analysis }: ScoreBreakdownProps) {
               <span className="h-2 w-2 rounded-full" style={{ backgroundColor: tone.ring }} />
               <span className={`text-sm font-medium ${tone.textClass}`}>{tone.label}</span>
             </div>
-            <p className="mt-4 text-sm leading-7 text-gray-600">{analysis.score_reasoning}</p>
+            <p className="mt-4 text-sm leading-7 text-gray-600">{scoreReasoning}</p>
           </div>
         </div>
 

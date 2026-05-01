@@ -1,13 +1,37 @@
+export type AnalysisScoreMap = {
+  experience?: number | null;
+  formatting?: number | null;
+  keywords?: number | null;
+  skills?: number | null;
+};
+
+export type ResumeImprovementSections = {
+  experience?: string[] | null;
+  general?: string[] | null;
+  keywords?: string[] | null;
+  skills?: string[] | null;
+};
+
+export type RewrittenBulletItem = {
+  after?: string | null;
+  before?: string | null;
+  original?: string | null;
+  rewritten?: string | null;
+};
+
 export type AIAnalysisResult = {
-  match_score: number;
-  score_reasoning: string;
-  missing_skills: string[];
-  keyword_gaps: string[];
-  resume_improvements: string[];
-  rewritten_bullets: string[];
-  optimized_resume: string;
-  cover_letter: string;
-  risk_flags: string[];
+  role_summary?: string | null;
+  match_score?: number | null;
+  score_reasoning?: string | null;
+  scores?: AnalysisScoreMap | null;
+  resume_improvements?: ResumeImprovementSections | string[] | null;
+  rewritten_bullets?: Array<string | RewrittenBulletItem> | null;
+  optimized_resume?: string | null;
+  cover_letter?: string | null;
+  risk_flags?: string[] | null;
+  is_estimated?: boolean | null;
+  missing_skills?: string[] | null;
+  keyword_gaps?: string[] | null;
 };
 
 export type AnalysisListItem = {
@@ -93,7 +117,7 @@ export async function createCheckoutSession(): Promise<CheckoutSessionResponse> 
   let response: Response;
 
   try {
-    response = await fetch("/api/billing/create-checkout-session", {
+    response = await fetch("/api/stripe/create-checkout", {
       method: "POST",
     });
   } catch {
@@ -107,8 +131,8 @@ export async function createPortalSession(): Promise<CheckoutSessionResponse> {
   let response: Response;
 
   try {
-    response = await fetch("/api/billing/create-portal-session", {
-      method: "POST",
+    response = await fetch("/api/stripe/portal", {
+      method: "GET",
     });
   } catch {
     throw new Error("Cannot connect to billing.");

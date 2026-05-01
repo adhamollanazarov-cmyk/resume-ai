@@ -83,7 +83,7 @@ export async function createUpgradeCheckoutSession(userId: string): Promise<Resp
     "X-User-Id": userId,
   });
 
-  return fetch(`${getBackendBaseUrl()}/api/billing/create-checkout-session`, {
+  return fetch(`${getBackendBaseUrl()}/api/stripe/create-checkout`, {
     method: "POST",
     headers,
     cache: "no-store",
@@ -96,8 +96,8 @@ export async function createBillingPortalSession(userId: string): Promise<Respon
     "X-User-Id": userId,
   });
 
-  return fetch(`${getBackendBaseUrl()}/api/billing/create-portal-session`, {
-    method: "POST",
+  return fetch(`${getBackendBaseUrl()}/api/stripe/portal`, {
+    method: "GET",
     headers,
     cache: "no-store",
   });
