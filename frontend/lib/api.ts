@@ -32,18 +32,38 @@ export type AnalyzeResponse = {
   status: string;
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+export type DownloadFile = {
+  blob: Blob;
+  fileName: string;
+};
 
-function getApiUrl(path: string): string {
-  if (!API_URL) {
+export type CheckoutSessionResponse = {
+  url: string;
+};
+
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+function getBackendApiUrl(path: string): string {
+  if (!BACKEND_API_URL) {
     throw new Error("NEXT_PUBLIC_API_URL is not defined");
   }
 
-  const baseUrl = API_URL.replace(/\/+$/, "");
+  const baseUrl = BACKEND_API_URL.replace(/\/+$/, "");
   const cleanPath = path.replace(/^\/+/, "");
 
   return `${baseUrl}/${cleanPath}`;
 }
+
+function getDownloadFileName(response: Response, fallbackName: string): string {
+  const disposition = response.headers.get("Content-Disposition") ?? response.headers.get("content-disposition");
+  if (!disposition) {
+    return fallbackName;
+  }
+
+  const match = disposition.match(/filename="([^"]+)"/i);
+  return match?.[1] ?? fallbackName;
+}
+
 async function parseResponse<T>(response: Response, fallbackMessage: string): Promise<T> {
   if (!response.ok) {
     const errorBody = await response.json().catch(() => null);
@@ -58,17 +78,43 @@ export async function analyzeResume(formData: FormData): Promise<AnalyzeResponse
   let response: Response;
 
   try {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
-    response = await fetch(getApiUrl("/api/cv/analyze"), {
-    method: "POST",
-    body: formData
-  });
+    response = await fetch("/api/analyze", {
+      method: "POST",
+      body: formData,
+    });
   } catch {
     throw new Error("Cannot connect to backend.");
   }
 
   return parseResponse<AnalyzeResponse>(response, "Resume analysis failed. Please check the file and try again.");
+}
+
+export async function createCheckoutSession(): Promise<CheckoutSessionResponse> {
+  let response: Response;
+
+  try {
+    response = await fetch("/api/billing/create-checkout-session", {
+      method: "POST",
+    });
+  } catch {
+    throw new Error("Cannot connect to billing.");
+  }
+
+  return parseResponse<CheckoutSessionResponse>(response, "Could not start the upgrade checkout.");
+}
+
+export async function createPortalSession(): Promise<CheckoutSessionResponse> {
+  let response: Response;
+
+  try {
+    response = await fetch("/api/billing/create-portal-session", {
+      method: "POST",
+    });
+  } catch {
+    throw new Error("Cannot connect to billing.");
+  }
+
+  return parseResponse<CheckoutSessionResponse>(response, "Could not open the billing portal.");
 }
 
 export async function getAnalyses(): Promise<AnalysisListItem[]> {
@@ -79,7 +125,7 @@ export async function getAnalyses(): Promise<AnalysisListItem[]> {
   });
 
   try {
-    response = await fetch(`${getApiUrl("/api/analyses")}?${searchParams.toString()}`, {
+    response = await fetch(`${getBackendApiUrl("/api/analyses")}?${searchParams.toString()}`, {
       method: "GET",
       cache: "no-store",
     });
@@ -94,7 +140,7 @@ export async function getAnalysis(id: number): Promise<AnalysisDetail> {
   let response: Response;
 
   try {
-    response = await fetch(getApiUrl(`/api/analyses/${id}`), {
+    response = await fetch(getBackendApiUrl(`/api/analyses/${id}`), {
       method: "GET",
       cache: "no-store",
     });
@@ -103,4 +149,31 @@ export async function getAnalysis(id: number): Promise<AnalysisDetail> {
   }
 
   return parseResponse<AnalysisDetail>(response, "Failed to load analysis detail.");
+}
+
+export async function downloadOptimizedResume(optimizedResume: string): Promise<DownloadFile> {
+  let response: Response;
+
+  try {
+    response = await fetch(getBackendApiUrl("/api/cv/download-optimized"), {
+      method: "GET",
+      headers: {
+        "X-Optimized-Resume": optimizedResume,
+      },
+    });
+  } catch {
+    throw new Error("Cannot connect to backend.");
+  }
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null);
+    const message =
+      typeof errorBody?.detail === "string" ? errorBody.detail : "Could not prepare the optimized resume download.";
+    throw new Error(message);
+  }
+
+  return {
+    blob: await response.blob(),
+    fileName: getDownloadFileName(response, "optimized-resume.txt"),
+  };
 }
