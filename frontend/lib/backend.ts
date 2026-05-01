@@ -20,10 +20,12 @@ type SyncedUser = {
 // ============================================================
 
 function getBackendBaseUrl(): string {
-  const value = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "");
+  const value = (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL)?.replace(/\/+$/, "");
+
   if (!value) {
-    throw new Error("NEXT_PUBLIC_API_URL is not configured on the frontend.");
+    throw new Error("API_URL is not configured.");
   }
+
   return value;
 }
 
@@ -226,3 +228,6 @@ export async function getUserAnalysis(
 }
 console.log("SYNC URL:", process.env.NEXT_PUBLIC_API_URL);
 console.log("Calling sync-user...");
+const apiUrl = process.env.API_URL;
+
+console.log("SYNC URL:", apiUrl);
