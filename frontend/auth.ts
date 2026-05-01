@@ -26,21 +26,22 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ user }) {
-      if (!user.email) {
-        return false;
-      }
+  if (!user.email) {
+    return false;
+  }
 
-      try {
-        await syncUserRecord({
-          email: user.email,
-          name: user.name,
-          image: user.image,
-        });
-        return true;
-      } catch {
-        return false;
-      }
-    },
+  try {
+    await syncUserRecord({
+      email: user.email,
+      name: user.name,
+      image: user.image,
+    });
+  } catch (error) {
+    console.error("User sync failed during sign in", error);
+  }
+
+  return true;
+},
     async jwt({ token, user }) {
       if (!token.email) {
         return token;
