@@ -58,7 +58,7 @@ function logAuthIssue(
 }
 
 export const authOptions: NextAuthOptions = {
-  debug: process.env.NODE_ENV !== "production",
+  debug: true,
   secret: resolvedAuthSecret,
   pages: {
     signIn: "/login",
