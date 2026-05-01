@@ -141,3 +141,15 @@ export async function getUserAnalysis(userId: string, analysisId: number): Promi
 
   return parseBackendJsonResponse<AnalysisDetail>(response, "Could not load that analysis.");
 }
+
+
+export async function requestOptimizedResumeDownload(optimizedResume: string): Promise<Response> {
+  return fetch(`${getBackendBaseUrl()}/api/cv/download-optimized`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ optimized_resume: optimizedResume }),
+    cache: "no-store",
+  });
+}

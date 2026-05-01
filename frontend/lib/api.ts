@@ -155,11 +155,12 @@ export async function downloadOptimizedResume(optimizedResume: string): Promise<
   let response: Response;
 
   try {
-    response = await fetch(getBackendApiUrl("/api/cv/download-optimized"), {
-      method: "GET",
+    response = await fetch("/api/download-optimized", {
+      method: "POST",
       headers: {
-        "X-Optimized-Resume": optimizedResume,
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({ optimized_resume: optimizedResume }),
     });
   } catch {
     throw new Error("Cannot connect to backend.");
