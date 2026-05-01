@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import AnalyzerWorkspace from "@/app/components/AnalyzerWorkspace";
-import ExampleResult from "@/app/components/ExampleResult";
+import HeroDemo from "@/app/components/HeroDemo";
 import { getCurrentSession } from "@/lib/auth-helpers";
 
 export default async function LandingPage() {
@@ -69,7 +69,7 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        <ExampleResult />
+        <HeroDemo />
 
         <section id="analyze" className="grid gap-6 scroll-mt-24">
           <div className="max-w-2xl">

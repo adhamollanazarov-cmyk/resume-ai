@@ -71,7 +71,17 @@ function saveTextFile(contents: string, fileName: string): void {
   window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
 }
 
-function ScoreCard({ label, score }: { label: string; score: number }) {
+function ScoreCard({
+  delayMs,
+  isVisible,
+  label,
+  score,
+}: {
+  delayMs: number;
+  isVisible: boolean;
+  label: string;
+  score: number;
+}) {
   const tone = getScoreTone(score);
 
   return (
@@ -81,7 +91,14 @@ function ScoreCard({ label, score }: { label: string; score: number }) {
         <span className={`text-lg font-semibold ${tone.textClass}`}>{score}</span>
       </div>
       <div className="mt-4 h-2 overflow-hidden rounded-full" style={{ backgroundColor: tone.track }}>
-        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${score}%`, backgroundColor: tone.ring }} />
+        <div
+          className="h-full rounded-full transition-[width] duration-700 ease-out"
+          style={{
+            backgroundColor: tone.ring,
+            transitionDelay: `${delayMs}ms`,
+            width: isVisible ? `${score}%` : "0%",
+          }}
+        />
       </div>
     </article>
   );
@@ -93,6 +110,7 @@ export default function AnalysisResult({ analysis, jobDescription }: AnalysisRes
   const [actionError, setActionError] = useState<FeedbackState | null>(null);
   const [activeTab, setActiveTab] = useState<RecommendationTabKey>("skills");
   const [animatedScore, setAnimatedScore] = useState(0);
+  const [areScoreBarsVisible, setAreScoreBarsVisible] = useState(false);
 
   const matchScore = getAnalysisMatchScore(analysis);
   const roleSummary = useMemo(() => {
@@ -135,6 +153,16 @@ export default function AnalysisResult({ analysis, jobDescription }: AnalysisRes
 
     return () => window.cancelAnimationFrame(frameId);
   }, [matchScore]);
+
+  useEffect(() => {
+    setAreScoreBarsVisible(false);
+
+    const timer = window.setTimeout(() => {
+      setAreScoreBarsVisible(true);
+    }, 80);
+
+    return () => window.clearTimeout(timer);
+  }, [analysis]);
 
   useEffect(() => {
     return () => {
@@ -185,6 +213,19 @@ export default function AnalysisResult({ analysis, jobDescription }: AnalysisRes
 
     setActionError(null);
     saveTextFile(optimizedResume, "optimized-resume.txt");
+  }
+
+  function handleDownloadCoverLetter() {
+    if (!coverLetter) {
+      setActionError({
+        title: "Download unavailable.",
+        description: "There is no cover letter available to download yet.",
+      });
+      return;
+    }
+
+    setActionError(null);
+    saveTextFile(coverLetter, "cover-letter.txt");
   }
 
   const radius = 58;
@@ -247,8 +288,14 @@ export default function AnalysisResult({ analysis, jobDescription }: AnalysisRes
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {SCORE_CARDS.map((card) => (
-          <ScoreCard key={card.key} label={card.label} score={scores[card.key]} />
+        {SCORE_CARDS.map((card, index) => (
+          <ScoreCard
+            key={card.key}
+            delayMs={index * 90}
+            isVisible={areScoreBarsVisible}
+            label={card.label}
+            score={scores[card.key]}
+          />
         ))}
       </section>
 
@@ -363,7 +410,7 @@ export default function AnalysisResult({ analysis, jobDescription }: AnalysisRes
             >
               {copiedKey === "optimized-resume" ? "Copied" : "Copy"}
             </button>
-            <DownloadButton label="Download as .txt" onClick={handleDownloadOptimizedResume} />
+            <DownloadButton label="Download .txt" onClick={handleDownloadOptimizedResume} />
           </div>
         </div>
         <div className="mt-4 rounded-2xl border border-[#E5DFD0] bg-[#FCFBF7] p-5">
@@ -388,6 +435,7 @@ export default function AnalysisResult({ analysis, jobDescription }: AnalysisRes
           >
             {copiedKey === "cover-letter" ? "Copied" : "Copy Cover Letter"}
           </button>
+          <DownloadButton label="Download .txt" onClick={handleDownloadCoverLetter} />
         </div>
         <div className="mt-4 rounded-2xl border border-[#E5DFD0] bg-[#FCFBF7] p-5">
           <div className="whitespace-pre-wrap text-sm leading-7 text-[#403A2E]">{coverLetter || "No cover letter returned."}</div>

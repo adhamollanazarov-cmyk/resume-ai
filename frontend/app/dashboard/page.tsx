@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import EmptyAnalysisState from "@/app/components/EmptyAnalysisState";
-import PricingCard from "@/app/components/PricingCard";
 import ManageBillingButton from "@/app/components/ManageBillingButton";
+import PricingSection from "@/app/components/PricingSection";
 import UpgradeButton from "@/app/components/UpgradeButton";
 import { getUserAnalyses } from "@/lib/backend";
 import { getCurrentSession, isDemoAuthEnabled, requireCurrentUser } from "@/lib/auth-helpers";
@@ -102,9 +102,14 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               <UpgradeButton label="Upgrade to Pro" />
             )}
           </div>
-          <div className="mt-5 grid gap-4 lg:grid-cols-2">
-            <PricingCard currentPlan={user.plan} isDemoMode={demoAuthEnabled} isSignedIn={!demoAuthEnabled} plan="free" />
-            <PricingCard currentPlan={user.plan} isDemoMode={demoAuthEnabled} isSignedIn={!demoAuthEnabled} plan="pro" />
+          <div className="mt-5">
+            <PricingSection
+              analysisCount={user.analysisCount}
+              currentPlan={user.plan}
+              isDemoMode={demoAuthEnabled}
+              isSignedIn={!demoAuthEnabled}
+              limit={FREE_ANALYSIS_LIMIT}
+            />
           </div>
         </section>
 

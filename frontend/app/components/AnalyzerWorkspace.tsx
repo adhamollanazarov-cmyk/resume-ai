@@ -288,7 +288,7 @@ export default function AnalyzerWorkspace() {
 
         {requestError && isLimitError ? (
           <div className="mt-5">
-            <UpgradeBanner currentCount={3} isSignedIn limit={3} />
+            <UpgradeBanner currentCount={3} currentPlan="free" isSignedIn limit={3} />
           </div>
         ) : null}
 

@@ -6,15 +6,21 @@ import UpgradeButton from "@/app/components/UpgradeButton";
 
 type UpgradeBannerProps = {
   currentCount?: number;
+  currentPlan?: "free" | "pro";
   isSignedIn?: boolean;
   limit?: number;
 };
 
 export default function UpgradeBanner({
   currentCount = 3,
+  currentPlan = "free",
   isSignedIn = true,
   limit = 3,
 }: UpgradeBannerProps) {
+  if (currentPlan !== "free" || currentCount < limit) {
+    return null;
+  }
+
   return (
     <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
