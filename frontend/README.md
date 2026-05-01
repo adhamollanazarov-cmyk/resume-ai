@@ -22,6 +22,25 @@ The backend must be running on:
 http://127.0.0.1:8000
 ```
 
+For Vercel deployment:
+
+- set the project Root Directory to `frontend`
+- set:
+  - `NEXT_PUBLIC_API_URL`
+  - `GITHUB_CLIENT_ID`
+  - `GITHUB_CLIENT_SECRET`
+  - `AUTH_SECRET`
+  - `AUTH_URL`
+  - `INTERNAL_API_SECRET`
+
+Example:
+
+```text
+AUTH_URL=https://your-vercel-app.vercel.app
+```
+
+If the Root Directory is not `frontend`, routes like `/api/auth/[...nextauth]` will not be included in the deployment.
+
 ## Run
 
 ```bash
