@@ -1,8 +1,14 @@
 from datetime import datetime
 from typing import Any
+from typing import Literal
 
 from pydantic import BaseModel
 from pydantic import Field
+from pydantic import field_validator
+
+PlanType = Literal["free", "pro"]
+HealthCheckStatus = Literal["ok", "error", "not_configured"]
+HealthOverallStatus = Literal["ok", "degraded", "down"]
 
 
 class AIAnalysisResult(BaseModel):
@@ -44,3 +50,51 @@ class HealthResponse(BaseModel):
     app_name: str
     version: str
     environment: str
+
+
+class ServiceHealthCheck(BaseModel):
+    status: HealthCheckStatus
+    latency_ms: int | None = None
+
+
+class APIHealthChecks(BaseModel):
+    database: ServiceHealthCheck
+    groq_api: ServiceHealthCheck
+
+
+class APIHealthResponse(BaseModel):
+    status: HealthOverallStatus
+    timestamp: str
+    version: str
+    checks: APIHealthChecks
+
+
+class UserSyncRequest(BaseModel):
+    email: str
+    name: str | None = None
+    image: str | None = None
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized or "@" not in normalized:
+            raise ValueError("A valid email address is required.")
+        return normalized
+
+
+class UserSessionInfo(BaseModel):
+    id: int
+    email: str
+    name: str | None
+    image: str | None
+    plan: PlanType
+    analysis_count: int
+
+
+class CheckoutSessionResponse(BaseModel):
+    url: str
+
+
+class DownloadOptimizedRequest(BaseModel):
+    optimized_resume: str

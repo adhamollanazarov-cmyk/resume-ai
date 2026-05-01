@@ -14,7 +14,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.config import settings
-from app.db import Base
+from app.db import Base, normalize_database_url
 import app.models  # noqa: F401
 
 config = context.config
@@ -23,7 +23,10 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 if settings.database_url:
-    config.set_main_option("sqlalchemy.url", settings.database_url)
+    config.set_main_option(
+        "sqlalchemy.url",
+        normalize_database_url(settings.database_url, async_mode=True),
+    )
 
 target_metadata = Base.metadata
 

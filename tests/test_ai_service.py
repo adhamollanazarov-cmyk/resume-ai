@@ -126,3 +126,25 @@ def test_analyze_resume_requires_groq_api_key_when_mock_disabled(monkeypatch) ->
                 job_description="Need Python and API experience.",
             )
         )
+
+
+def test_analyze_resume_returns_mock_analysis_on_timeout(monkeypatch) -> None:
+    async def fake_to_thread(*args: object, **kwargs: object) -> dict[str, object]:
+        raise asyncio.TimeoutError
+
+    monkeypatch.setattr(ai_service.asyncio, "to_thread", fake_to_thread)
+    monkeypatch.setattr(settings, "use_mock_ai", False)
+    monkeypatch.setattr(settings, "groq_api_key", "test-key")
+    monkeypatch.setattr(settings, "ai_timeout_seconds", 25)
+    monkeypatch.setattr(settings, "max_resume_chars", 12000)
+    monkeypatch.setattr(settings, "max_job_description_chars", 6000)
+
+    result = asyncio.run(
+        ai_service.analyze_resume(
+            resume_text="Backend engineer with FastAPI and Python delivery experience.",
+            job_description="Need Python, FastAPI, Docker, and AWS experience.",
+        )
+    )
+
+    assert isinstance(result["match_score"], int)
+    assert result["optimized_resume"]

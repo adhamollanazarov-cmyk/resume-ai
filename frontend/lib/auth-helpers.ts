@@ -40,7 +40,7 @@ export async function requireCurrentUser() {
   }
 
   const session = await auth();
-  if (!session?.user?.id || !session.user.email) {
+  if (!session?.user?.email) {
     redirect("/login");
   }
 
@@ -61,6 +61,11 @@ export async function requireCurrentUser() {
       analysisCount: syncedUser.analysis_count,
     };
   } catch {
-    return session.user;
+    return {
+      ...session.user,
+      id: session.user.id ?? "",
+      plan: session.user.plan ?? "free",
+      analysisCount: session.user.analysisCount ?? 0,
+    };
   }
 }

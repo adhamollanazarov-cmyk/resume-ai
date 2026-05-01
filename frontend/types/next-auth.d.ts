@@ -16,6 +16,6 @@ declare module "next-auth/jwt" {
   interface JWT {
     analysisCount?: number;
     plan?: "free" | "pro";
-    userId?: number;
+    userId?: string;
   }
 }

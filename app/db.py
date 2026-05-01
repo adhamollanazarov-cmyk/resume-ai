@@ -17,18 +17,26 @@ class Base(DeclarativeBase):
 
 engine: AsyncEngine | None = None
 AsyncSessionLocal: async_sessionmaker[AsyncSession] | None = None
+
+
+def normalize_database_url(database_url: str, *, async_mode: bool = True) -> str:
+    if database_url.startswith("postgres://"):
+        driver_prefix = "postgresql+asyncpg://" if async_mode else "postgresql://"
+        return database_url.replace("postgres://", driver_prefix, 1)
+
+    if database_url.startswith("postgresql://"):
+        if async_mode:
+            return database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return database_url
+
+    return database_url
+
+
 def get_async_database_url() -> str | None:
     if not settings.database_url:
         return None
 
-    if settings.database_url.startswith("postgresql://"):
-        return settings.database_url.replace(
-            "postgresql://",
-            "postgresql+asyncpg://",
-            1,
-        )
-
-    return settings.database_url
+    return normalize_database_url(settings.database_url, async_mode=True)
 
 
 def _initialize_database() -> async_sessionmaker[AsyncSession]:
@@ -49,6 +57,13 @@ def _initialize_database() -> async_sessionmaker[AsyncSession]:
     engine = create_async_engine(database_url, echo=False)
     AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
     return AsyncSessionLocal
+
+
+def get_session_factory() -> async_sessionmaker[AsyncSession] | None:
+    if not settings.database_url:
+        return None
+
+    return _initialize_database()
 
 
 async def get_db() -> AsyncIterator[AsyncSession]:
