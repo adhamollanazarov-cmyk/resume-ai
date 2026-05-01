@@ -215,6 +215,7 @@ export default function AnalyzerWorkspace() {
   return (
     <section className="grid gap-6 xl:grid-cols-[0.88fr_1.12fr]">
       <form
+        id="analyze-form"
         onSubmit={handleSubmit}
         className="rounded-2xl border border-gray-200 bg-white p-6 shadow-[0_20px_60px_rgba(0,0,0,0.04)] transition-all duration-200 hover:border-gray-300"
       >

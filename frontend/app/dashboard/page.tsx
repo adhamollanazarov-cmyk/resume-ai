@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import EmptyAnalysisState from "@/app/components/EmptyAnalysisState";
 import PricingCard from "@/app/components/PricingCard";
 import ManageBillingButton from "@/app/components/ManageBillingButton";
 import UpgradeButton from "@/app/components/UpgradeButton";
@@ -140,9 +141,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               ))}
             </div>
           ) : (
-            <div className="mt-5 rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-5 py-6 text-sm text-gray-500">
-              {demoAuthEnabled ? "Demo mode does not load saved analyses." : "No saved analyses yet."}
-            </div>
+            <EmptyAnalysisState />
           )}
         </section>
       </div>
