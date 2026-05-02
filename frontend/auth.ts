@@ -7,7 +7,7 @@ import { syncUserRecord } from "@/lib/backend";
 const resolvedAuthUrl =
   process.env.AUTH_URL ??
   process.env.NEXTAUTH_URL ??
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
+  "https://resume-ai-hazel-two.vercel.app";
 
 const resolvedAuthSecret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
 
